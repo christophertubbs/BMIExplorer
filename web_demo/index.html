@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- Browser-local tactile BMI companion. TODO(AI-GENERATED): Review and rewrite or approve this implementation. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A tactile Basic Model Interface lab. Explore grids, typed memory, topology and strict model contracts entirely in your browser.">
+  <meta name="color-scheme" content="light">
+  <title>BMI Explorer · The model lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244b43'/%3E%3Cpath d='M8 8h16v16H8zM8 16h16M16 8v16' fill='none' stroke='%23e9d996' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/d3.v7.9.0.min.js" defer></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to model workspace</a>
+  <header class="masthead">
+    <a class="brand" href="./" aria-label="BMI Explorer home"><span class="brand-mark" aria-hidden="true">▦</span><span>BMI Explorer<small>THE MODEL LAB</small></span></a>
+    <div class="header-caption">A working model.<br>A better mental model.</div>
+    <button id="open-guide" class="button header-button" type="button">How to play <span aria-hidden="true">↗</span></button>
+  </header>
+
+  <main>
+    <section class="introduction">
+      <div><p class="eyebrow"><span class="live-dot"></span> AN INTERACTIVE FIELD GUIDE TO BMI</p><h1>Get your hands on the model.</h1><p class="intro-copy">Touch a grid. Follow a variable. Move a value.<br>Discover what the interface promises—and what it should refuse.</p></div>
+      <div class="intro-note"><span class="note-number">01—09</span><p>Nine grids. One model.<br>Every view is connected to the same state.</p><a href="#memory-section">Explore the memory bench <span aria-hidden="true">↓</span></a></div>
+    </section>
+
+    <section class="model-bar" aria-label="Model and lifecycle controls">
+      <label class="model-picker">DEMONSTRATION MODEL<select id="scenario" aria-describedby="scenario-description"></select></label>
+      <div class="scenario-description" id="scenario-description"></div>
+      <div class="clock"><span id="model-status" class="status-pill">INITIALIZED</span><strong id="model-time">0 s</strong><span>of 10,800 s · Δt 3,600 s</span></div>
+      <div class="lifecycle-actions"><button id="step" class="button primary" type="button">Step +3,600 s</button><button id="finalize" class="button" type="button">Finalize</button><button id="reset" class="button" type="button">↺ Reset model</button></div>
+    </section>
+    <p class="scope-note" id="scope-note">Switching models creates a fresh owner. Selecting grids and variables keeps this model and its clock.</p>
+
+    <section class="lab-shell" id="workspace" aria-label="Interactive model workspace">
+      <aside class="inventory">
+        <div class="section-label"><span>MODEL INVENTORY</span><span class="count">9 / 21</span></div>
+        <p class="small muted">Grid IDs identify geometry.<br>Variables point to those grids.</p>
+        <nav id="inventory" aria-label="Grids and variables"></nav>
+      </aside>
+
+      <div class="workspace-main">
+        <div class="workspace-heading"><div class="section-label"><span id="view-caption">SELECTED GRID</span><span class="label-rule"></span></div><div class="segmented" role="group" aria-label="Workspace view"><button id="workbench-tab" type="button" aria-pressed="true">Workbench</button><button id="atlas-tab" type="button" aria-pressed="false">Grid atlas</button></div></div>
+
+        <div id="atlas" class="atlas" hidden aria-label="All nine grid representations"></div>
+        <div id="workbench">
+          <div class="focus-layout">
+            <section class="grid-panel" aria-labelledby="grid-title">
+              <div class="grid-heading"><div><p class="eyebrow" id="grid-type">UNIFORM RECTILINEAR</p><h2 id="grid-title">uniform_2d</h2></div><span class="grid-id" id="grid-id">GRID 01</span></div>
+              <dl class="grid-facts" id="grid-facts"></dl>
+              <div class="plot-wrap"><svg id="main-grid" role="img" aria-label="Selected grid and variable values"></svg><div id="plot-empty" class="plot-empty" hidden>Model finalized. This is the last view.<br>Try a BMI call to see its lifecycle error, or reset to continue.</div></div>
+              <div class="plot-tools"><label><input id="show-labels" type="checkbox" checked> Show node indices</label><label id="rotation-control" hidden>Turn 3D view <input id="rotation" type="range" min="-160" max="160" value="-28" aria-label="Rotate 3D grid projection"></label><span class="legend"><span></span>lower → higher value</span></div>
+              <p id="geometry-note" class="annotation"></p>
+              <div class="compare-controls"><label>Compare with<select id="compare-grid"></select></label><button id="compare" class="button" type="button">Compare grids ↔</button></div>
+              <div id="comparison" class="comparison" hidden aria-live="polite"></div>
+            </section>
+
+            <section class="call-panel" aria-labelledby="call-title">
+              <p class="eyebrow">ASK THE INTERFACE</p><h2 id="call-title">Make a BMI call.</h2><p class="small muted">Allocate the memory. Keep the contract.<br>Try an invalid call and see why it fails.</p>
+              <label>Method<select id="method"></select></label>
+              <code id="call-signature" class="call-signature"></code>
+              <p id="call-context" class="small muted"></p>
+              <div id="allocation-fields">
+                <div class="form-row"><label>Caller buffer<select id="buffer-type"></select></label><label>Elements<input id="buffer-length" type="number" min="0" max="256" step="1" value="2"></label></div>
+                <label id="source-field" hidden>Source values<input id="source-values" type="text" value="0, 1" spellcheck="false" autocomplete="off"></label>
+                <p id="allocation-note" class="small contract-hint"></p>
+                <button id="allocate-correct" type="button" class="text-button">Use the declared type &amp; count ↗</button>
+              </div>
+              <label id="indices-field" hidden>Indices <span class="muted">· explicit Int32Array</span><input id="indices" type="text" value="0" spellcheck="false" autocomplete="off"></label>
+              <label id="target-time-field" hidden>Absolute target time (s)<input id="target-time" type="number" value="3600" step="1"></label>
+              <button id="run-call" type="button" class="button primary full">Run call <span aria-hidden="true">↗</span></button>
+              <div id="latest-result" class="latest-result" role="status" aria-live="polite" aria-atomic="true">Ready. Select a method, allocate a buffer, and run your first call.</div>
+              <div class="contract-explanation"><span id="applicability" class="micro-badge">APPLICABLE</span><p id="method-lesson"></p></div>
+              <details class="mistake-menu"><summary>Try a deliberate mistake</summary><div class="mistake-buttons"><button data-mistake="array" type="button">Pass a plain array</button><button data-mistake="dtype" type="button">Use the wrong dtype</button><button data-mistake="length" type="button">Use the wrong length</button><button data-mistake="bounds" type="button">Index past the end</button><button data-mistake="geometry" type="button">Ask for unsupported geometry</button><button data-mistake="broadcast" type="button">Broadcast one number</button></div></details>
+            </section>
+          </div>
+
+          <section class="values-panel" aria-labelledby="variable-title">
+            <div class="values-heading"><div><p class="eyebrow">VARIABLE → GRID → LOCATION</p><h3 id="variable-title">uniform_2d__value</h3></div><span id="variable-location" class="location-pill">NODE</span></div>
+            <div id="variable-facts" class="variable-facts"></div>
+            <div id="value-strip" class="value-strip" aria-label="Indexed variable values"></div>
+            <div class="value-editor"><label>Selected index<input id="selected-index" type="number" value="0" min="0" step="1"></label><label>New value<input id="edit-value" type="text" value="0" spellcheck="false" autocomplete="off"></label><button id="write-value" class="button primary" type="button">Write via set_value_at_indices</button><span class="small muted">Click a value or a grid element<br>to select its flat index.</span></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="memory-section" id="memory-section" aria-labelledby="memory-title">
+      <div class="memory-intro"><p class="eyebrow">OWNERSHIP, MADE VISIBLE</p><h2 id="memory-title">A copy is yours.<br>A pointer is connected.</h2><p>Capture the selected variable both ways. Edit either buffer, then follow the values back to the grid.</p><button id="capture-memory" type="button" class="button primary">Capture copy + live reference ↗</button><p class="small muted" id="memory-owner">No retained buffers yet.</p></div>
+      <div class="memory-card copy-card"><div class="memory-card-header"><span class="memory-symbol" aria-hidden="true">▤</span><div><h3>Caller-owned copy</h3><code>get_value(name, dest)</code></div><span class="micro-badge">DETACHED COPY</span></div><div id="copy-values" class="memory-values">Capture a variable to allocate this buffer.</div><p class="small">Changing the copy leaves the model alone. A later model step leaves this copy alone.</p><button id="copy-edit" class="button" type="button" disabled>Add 10 to copy[0]</button></div>
+      <div class="memory-card pointer-card"><div class="memory-card-header"><span class="memory-symbol" aria-hidden="true">↔</span><div><h3>Model-owned reference</h3><code>get_value_ptr(name)</code></div><span id="pointer-status" class="micro-badge">LIVE ALIAS</span></div><div id="pointer-values" class="memory-values">Capture a variable to retain its reference.</div><p class="small" id="pointer-note">Changing this array changes model values. set_value writes in place, preserving this reference.</p><button id="pointer-edit" class="button" type="button" disabled>Add 10 to reference[0]</button></div>
+    </section>
+
+    <section class="trace-section" aria-labelledby="trace-title"><div class="trace-heading"><div><p class="eyebrow">THE EXPERIMENT RECORD</p><h2 id="trace-title">Every call tells a story.</h2></div><button id="clear-trace" class="text-button" type="button">Clear record</button></div><ol id="trace" class="trace-list" aria-label="Recent BMI calls"></ol></section>
+
+    <section class="boundaries"><div><span class="micro-badge">BMI REQUIRED</span><p>Methods, variable-to-grid identity, geometry, topology and copy/reference semantics follow the BMI interface.</p></div><div><span class="micro-badge">C++ PARITY</span><p>Caller-allocated typed memory. Exact lengths. No implicit cast, reshape or broadcast. Errors happen before writes.</p></div><div><span class="micro-badge">EXPLORER POLICY</span><p>TypedArrays, rank/axis applicability, fixed timesteps and empty point topology are explicit teaching choices.</p></div></section>
+    <footer><span>BMI EXPLORER <span class="muted">/ a tactile companion</span></span><div><a href="https://github.com/uihilab/BMI-JS/blob/main/bmijs/bmi.js" target="_blank" rel="noreferrer">BMI-JS interface ↗</a><a href="https://bmi.csdms.io/en/stable/model_grids.html" target="_blank" rel="noreferrer">BMI grid reference ↗</a><a href="README.md">Demo notes ↗</a></div><span class="small muted">Runs in your browser · no Python connection</span></footer>
+  </main>
+
+  <dialog id="guide"><form method="dialog"><button class="dialog-close button" aria-label="Close guide">✕</button></form><p class="eyebrow">YOUR FIRST EXPERIMENT</p><h2>Start with a grid.<br>End with a mental model.</h2><ol class="guide-steps"><li><strong>Choose a variable.</strong> The left inventory shows its grid, location and dtype. The plot and value strip refer to the same storage.</li><li><strong>Ask for geometry.</strong> Try get_grid_spacing on a uniform grid, then on rectilinear. Same method, different applicability.</li><li><strong>Change memory.</strong> Click a node, edge or face; write its value through an exact typed indexed call.</li><li><strong>Keep a copy and a reference.</strong> Edit both, then step the model. Watch which buffers change together.</li><li><strong>Break a contract.</strong> Try a plain array, wrong width, wrong length or out-of-range index. Read what was rejected and why.</li></ol><p class="annotation">Picking a grid keeps the same model. Switching the demonstration model or resetting creates a new one. Retained JavaScript arrays may outlive that owner; C++ pointers do not gain that lifetime guarantee.</p><p class="small muted">3D views are rotatable projections. Structured plot lines are derived guides, not extra BMI connectivity. JavaScript cannot express strided TypedArrays or revoke an existing reference; no raw-pointer safety is simulated.</p><button id="start-guide" type="button" class="button primary full">Let’s explore ↗</button></dialog>
+  <noscript><div class="fatal-message">Enable JavaScript to run the local BMI model and D3 views. No model calls are sent to Python.</div></noscript>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "bmi-explorer-web-demo",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test --test-isolation=none tests/*.test.js" }
+}

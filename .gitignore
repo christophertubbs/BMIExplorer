@@ -1,4 +1,26 @@
 # Byte-compiled / optimized / DLL files
+/.conda/
+/.venv/
+.idea/
+.vscode/
+.fleet/
+.ropeproject/
+*.sublime-workspace
+*.code-workspace
+.project
+.pydevproject
+.settings/
+.llm/scratch/
+.llm/logs/
+.llm/generated/
+.llm/**/*.tmp
+.llm/**/*.log
+.llm/**/*.cache
+.llm/**/__pycache__/
+.llm/**/.pytest_cache/
+.llm/**/.env
+.llm/**/*.secret
+log_override.json
 __pycache__/
 *.py[codz]
 *$py.class
