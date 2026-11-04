@@ -298,9 +298,9 @@ export const BASELINE = {
   ],
   "variables": [
     {
-      "name": "scalar__value",
+      "name": "scalar__velocity",
       "initial": [
-        42.0
+        328.3245
       ],
       "units": "1",
       "grid": 0,
@@ -312,20 +312,20 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "uniform_2d__value",
+      "name": "uniform_2d__slope",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0,
-        6.0,
-        7.0,
-        8.0,
-        9.0,
-        10.0,
-        11.0
+        0.0124,
+        0.0059,
+        0.0186,
+        0.0116,
+        0.0174,
+        0.0050,
+        0.0113,
+        0.0177,
+        0.0138,
+        0.0189,
+        0.0036,
+        0.0042
       ],
       "units": "1",
       "grid": 1,
@@ -337,32 +337,32 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "uniform_3d__value",
+      "name": "uniform_3d__soil_temp",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0,
-        6.0,
-        7.0,
-        8.0,
-        9.0,
-        10.0,
-        11.0,
-        12.0,
-        13.0,
-        14.0,
-        15.0,
-        16.0,
-        17.0,
-        18.0,
-        19.0,
-        20.0,
-        21.0,
-        22.0,
-        23.0
+        38.353,
+        38.595,
+        37.404,
+        35.485,
+        33.805,
+        34.369,
+        38.609,
+        36.339,
+        34.061,
+        33.797,
+        35.907,
+        33.977,
+        33.917,
+        38.704,
+        39.175,
+        32.596,
+        35.215,
+        38.831,
+        33.257,
+        37.832,
+        36.852,
+        35.515,
+        33.693,
+        33.748
       ],
       "units": "1",
       "grid": 2,
@@ -374,20 +374,20 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "rectilinear_2d__value",
+      "name": "rectilinear_2d__precip_rate",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0,
-        6.0,
-        7.0,
-        8.0,
-        9.0,
-        10.0,
-        11.0
+        38.342,
+        31.174,
+        45.544,
+        14.186,
+        34.703,
+        49.875,
+        24.987,
+        40.632,
+        32.443,
+        24.699,
+        0.911,
+        18.312
       ],
       "units": "1",
       "grid": 3,
@@ -399,32 +399,32 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "rectilinear_3d__value",
+      "name": "rectilinear_3d__saturation",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0,
-        6.0,
-        7.0,
-        8.0,
-        9.0,
-        10.0,
-        11.0,
-        12.0,
-        13.0,
-        14.0,
-        15.0,
-        16.0,
-        17.0,
-        18.0,
-        19.0,
-        20.0,
-        21.0,
-        22.0,
-        23.0
+        0.292,
+        0.318,
+        0.355,
+        0.616,
+        0.689,
+        0.516,
+        0.178,
+        0.382,
+        0.360,
+        0.670,
+        0.170,
+        0.205,
+        0.631,
+        0.523,
+        0.879,
+        0.832,
+        0.475,
+        0.567,
+        0.591,
+        0.960,
+        0.999,
+        0.421,
+        0.210,
+        0.360
       ],
       "units": "1",
       "grid": 4,
@@ -436,14 +436,14 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "points_2d__value",
+      "name": "points_2d__snow_depth",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0
+        0.1,
+        0.3,
+        0.2,
+        0.2,
+        0.32,
+        0.11
       ],
       "units": "1",
       "grid": 5,
@@ -455,14 +455,14 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "points_3d__value",
+      "name": "points_3d__water_level",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0
+        4.42,
+        1.882,
+        1.230,
+        3.212,
+        0.846,
+        2.763
       ],
       "units": "1",
       "grid": 6,
@@ -474,12 +474,12 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "unstructured_edges__value",
+      "name": "unstructured_edges__flow_velocity",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0
+        2.1,
+        1.894,
+        1.773,
+        2.435
       ],
       "units": "1",
       "grid": 7,
@@ -491,14 +491,14 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "unstructured_mixed__value",
+      "name": "unstructured_mixed__depth",
       "initial": [
-        0.0,
-        1.0,
-        2.0,
-        3.0,
-        4.0,
-        5.0
+        4.976,
+        1.597,
+        1.238,
+        3.327,
+        1.942,
+        3.793
       ],
       "units": "1",
       "grid": 8,
@@ -510,16 +510,16 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "unstructured_mixed__edge_value",
+      "name": "unstructured_mixed__flux",
       "initial": [
-        10.0,
-        11.0,
-        12.0,
-        13.0,
-        14.0,
-        15.0,
-        16.0,
-        17.0
+        0.436,
+        0.867,
+        -0.119,
+        0.232,
+        1.351,
+        1.295,
+        0.787,
+        0.501
       ],
       "units": "1",
       "grid": 8,
@@ -531,7 +531,7 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "unstructured_mixed__face_value",
+      "name": "unstructured_mixed__precipitation_rate",
       "initial": [
         20.0,
         21.0,
@@ -547,9 +547,9 @@ export const BASELINE = {
       "evolving": true
     },
     {
-      "name": "scalar__int8",
+      "name": "scalar__anomaly_class",
       "initial": [
-        7
+        -3
       ],
       "units": "1",
       "grid": 0,
@@ -561,9 +561,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__uint8",
+      "name": "scalar__qc_code",
       "initial": [
-        7
+        2
       ],
       "units": "1",
       "grid": 0,
@@ -575,9 +575,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__int16",
+      "name": "scalar__scaled_temp",
       "initial": [
-        7
+        2345
       ],
       "units": "1",
       "grid": 0,
@@ -589,9 +589,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__uint16",
+      "name": "scalar__stream_order",
       "initial": [
-        7
+        5
       ],
       "units": "1",
       "grid": 0,
@@ -603,9 +603,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__int32",
+      "name": "scalar__flow_direction_code",
       "initial": [
-        7
+        -72
       ],
       "units": "1",
       "grid": 0,
@@ -617,9 +617,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__uint32",
+      "name": "scalar__contributing_cells",
       "initial": [
-        7
+        384
       ],
       "units": "1",
       "grid": 0,
@@ -631,9 +631,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__int64",
+      "name": "scalar__storage_capacity",
       "initial": [
-        7
+        7030259239
       ],
       "units": "1",
       "grid": 0,
@@ -645,9 +645,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__uint64",
+      "name": "scalar__processed_cells",
       "initial": [
-        7
+        83939242345
       ],
       "units": "1",
       "grid": 0,
@@ -659,9 +659,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__float32",
+      "name": "scalar__area_sqkm",
       "initial": [
-        7
+        253.23412
       ],
       "units": "1",
       "grid": 0,
@@ -673,9 +673,9 @@ export const BASELINE = {
       "evolving": false
     },
     {
-      "name": "scalar__float64",
+      "name": "scalar__manning_roughness",
       "initial": [
-        7
+        0.035
       ],
       "units": "1",
       "grid": 0,
