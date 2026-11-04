@@ -58,7 +58,7 @@ async function main() {
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /\[0, 2, 3, 1, -1, 1\]/);
 
-    await page.locator('[data-variable="uniform_2d__value"]').click();
+    await page.locator('[data-variable="uniform_3d__soil_temp"]').click();
     await page.locator('#capture-memory').click();
     await page.locator('#copy-edit').click();
     assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '10');

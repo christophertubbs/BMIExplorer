@@ -11,7 +11,7 @@ import { drawGrid } from './visualization.js';
 import { byId, node, option, format, inputText } from './ui.js';
 
 /** @type {{model:BMI, variable:string, index:number, grid:object|null, descriptor:object|null, memory:object|null, sequence:number, snapshot:TypedArray|null}} */
-const state = { model: new BMI(), variable: 'uniform_2d__value', index: 0, grid: null, descriptor: null, memory: null, sequence: 0, snapshot: null };
+const state = { model: new BMI(), variable: 'uniform_3d__soil_temp', index: 0, grid: null, descriptor: null, memory: null, sequence: 0, snapshot: null };
 state.model.initialize('all_grids');
 
 /** Return all current grid IDs through public BMI variable discovery.
