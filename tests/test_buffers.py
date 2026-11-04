@@ -11,6 +11,7 @@ import pytest
 
 import bmi_explorer.app_logging as app_logging
 import bmi_explorer.errors as errors
+import bmi_explorer.fixtures as fixtures
 import bmi_explorer.model as model
 
 LOGGER: logging.Logger = app_logging.get_logger("bmi_explorer.tests.buffers")
@@ -27,7 +28,7 @@ def setup_model(scenario: str = "uniform_2d") -> tuple[model.Model, str]:
     """
     bmi: model.Model = model.Model()
     bmi.initialize("all_grids")
-    return bmi, f"{scenario}__value"
+    return bmi, fixtures.PRIMARY_NAMES[scenario]
 
 
 def invalid_buffers() -> list[object]:
@@ -170,8 +171,9 @@ def test_overlap_and_duplicates() -> None:
     name: str
     bmi, name = setup_model("unstructured_edges")
     pointer: np.ndarray = bmi.get_value_ptr(name)
+    before: np.ndarray = pointer.copy()
     bmi.set_value_at_indices(name, np.array([3, 2, 1, 0], dtype=np.int32), pointer)
-    np.testing.assert_array_equal(pointer, [3, 2, 1, 0])
+    np.testing.assert_array_equal(pointer, before[::-1])
     bmi.set_value_at_indices(
         name, np.array([0, 0], dtype=np.int32), np.array([5.0, 6.0])
     )

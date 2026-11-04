@@ -34,7 +34,8 @@ python -m bmi_explorer --scenario all_grids
 Use `mamba env create` in place of conda when available. `-p` selects a prefix;
 without it the file's default environment name is `bmi-explorer`, activated with
 `conda activate bmi-explorer`. Conda owns Python, NumPy and pip; pip owns the
-editable project, bmipy and its transitive dependencies, and pytest. No compiler
+editable project, bmipy and its transitive dependencies, prompt_toolkit, Pygments,
+and pytest. No compiler
 or additional native scientific stack is required by the deterministic scenario.
 The upstream bmipy wheel also declares black, click and jinja2 dependencies;
 these are upstream transitive requirements, not Explorer runtime features.
@@ -78,7 +79,8 @@ The subprocess integration tests also launch both entrypoints with a temporary c
 ## Updates, reproducibility and cleanup
 
 bmipy is pinned to 2.0.1 so signature checks detect interface drift. NumPy,
-setuptools and pytest use minimum versions; environment.yml is a portable input,
+setuptools and pytest use minimum versions; prompt_toolkit is constrained to
+`>=3.0.48,<4` and Pygments to `>=2.18,<3`; environment.yml is a portable input,
 not a fully locked snapshot. Before dependency upgrades, update metadata and
 this document, resolve in an isolated environment, and run the entire suite.
 For an exact conda deployment, export a reviewed explicit package list and pip
@@ -90,3 +92,14 @@ Uninstall the editable package with the selected interpreter's
 supplied environment during routine development. uv users can remove a disposable
 `.venv` after deactivation and recreate with `uv sync`. Local environments and
 IDE state are ignored by Git.
+
+
+## Terminal editing dependencies
+
+Regular installation includes prompt_toolkit and Pygments; no extra is required.
+For an existing editable environment after pulling these changes, run
+`python -m pip install -e '.[dev]'` (or the uv pip-compatible command above) to
+refresh dependencies. Syntax colors follow the terminal's color capabilities.
+The input editor keeps only in-memory history, supports bracketed paste, and
+uses Python's standard InteractiveConsole for evaluation. Pipes use plain input.
+See [console smoke checks](console-smoke.md) for keyboard and help checks.

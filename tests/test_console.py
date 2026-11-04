@@ -35,7 +35,7 @@ def test_switch_and_reset() -> None:
     session: code.InteractiveConsole = console.create("all_grids")
     explorer: teaching.Explorer = session.locals["explorer"]
     previous: model.Model = session.locals["bmi"]
-    name: str = "uniform_2d__value"
+    name: str = "uniform_2d__slope"
     pointer: np.ndarray = previous.get_value_ptr(name)
     pointer[:] = 99
     with pytest.raises(errors.BMIIndexError):
@@ -44,7 +44,7 @@ def test_switch_and_reset() -> None:
     explorer.reset()
     current: model.Model = session.locals["bmi"]
     assert current is explorer.bmi and current is not previous
-    assert current.get_value_ptr(name)[0] == 0.0
+    assert current.get_value_ptr(name)[0] == 0.0124
     np.testing.assert_array_equal(pointer, 99.0)
     with pytest.raises(errors.BMILifecycleError):
         previous.get_current_time()
@@ -66,14 +66,14 @@ def test_console_subprocess_outside_checkout(tmp_path: pathlib.Path) -> None:
     :return: None; verifies actual stdin/stdout and process status.
     """
     source: str = (
-        "n = 'uniform_2d__value'\n"
+        "n = 'uniform_2d__slope'\n"
         "bmi.set_value(n, [1.0])\n"
         "print('RECOVERED', bmi.get_grid_size(bmi.get_var_grid(n)))\n"
         "for i in range(2):\n    print('LOOP', i)\n\n"
         "original = bmi\n"
-        "print('COMPARE', 'rectilinear' in explorer.compare(bmi.get_var_grid(n), bmi.get_var_grid('rectilinear_2d__value')))\n"
+        "print('COMPARE', 'rectilinear' in explorer.compare(bmi.get_var_grid(n), bmi.get_var_grid('rectilinear_2d__precip_rate')))\n"
         "print('SAME', original is bmi, len(explorer.list()))\n"
-        "s = bmi.get_var_grid('scalar__value')\n"
+        "s = bmi.get_var_grid('scalar__velocity')\n"
         "print('SCALAR', bmi.get_grid_rank(s), bmi.get_grid_size(s))\n"
         "print('HELP', 'BMI REQUIRED' in help_bmi('get_value'))\n"
         "exit()\n"

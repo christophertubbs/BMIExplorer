@@ -42,9 +42,9 @@ Open `http://localhost:8000`. Python serves files only; no model calls go to Pyt
 All of these queries use the same initialized model:
 
 ```python
->>> u = bmi.get_var_grid('uniform_2d__value')
->>> r = bmi.get_var_grid('rectilinear_2d__value')
->>> p = bmi.get_var_grid('points_2d__value')
+>>> u = bmi.get_var_grid('uniform_2d__slope')
+>>> r = bmi.get_var_grid('rectilinear_2d__precip_rate')
+>>> p = bmi.get_var_grid('points_2d__snow_depth')
 >>> bmi.get_grid_shape(u, np.empty(2, dtype=np.int32))
 array([3, 4], dtype=int32)
 >>> bmi.get_grid_spacing(u, np.empty(2, dtype=np.float64))
@@ -56,20 +56,43 @@ array([ 0.,  2.,  3.,  1., -1.,  1.])
 >>> explorer.try_call('get_grid_spacing', r, np.empty(2, dtype=np.float64))
 # BMIGridOperationError: rectilinear axes do not have uniform spacing.
 >>> print(explorer.compare(u, r))
->>> print(explorer.topology(bmi.get_var_grid('unstructured_mixed__value')))
+>>> print(explorer.topology(bmi.get_var_grid('unstructured_mixed__depth')))
 ```
 
 Use `explorer.list()` for IDs, labels, types, ranks, geometry lengths, and variable
 names/counts/bytes/dtypes. BMI has no grid-enumeration method; IDs can also be
 collected from `get_var_grid(name)` over input/output variable names.
-Each grid has a float64 node variable `<grid_label>__value`. The mixed mesh also
-has edge and face variables; ten typed scalar samples demonstrate primitive widths.
+Each grid has a float64 hydrological variable: slope, soil temperature,
+precipitation rate, saturation, snow depth, water level, velocity, or water depth.
+The mixed mesh also has edge discharge (`flux`) and face rainfall variables.
+Ten scalar attributes cover primitive widths with meaningful quantities such as
+stream order, contributing-cell count, catchment area and Manning roughness.
+
+Samples include soil temperatures of **12.2–14.8 °C**, rain of **1.2–4 mm/h**,
+saturation fractions of **0.45–0.85**, and snow depths of **0.10–0.32 m**.
+`bmi.get_var_units(name)` reports the stored units. Each hourly update uses a
+small quantity-specific change; slope and scalar attributes stay fixed. See the
+[fixture data and units](docs/business-configuration.md) for the complete inventory.
+These are synthetic teaching values, not observations or a hydrological solver.
 
 `np`, initialized `bmi`, `explorer`, read-only `scenarios` (only `all_grids`), and
 `help_bmi` are preloaded. Try `help_bmi('get_value')`, `explorer.describe(u)`,
 `explorer.methods(u)`, or `explorer.example('get_grid_x', grid_id=r)`.
 Normal multiline Python and `help()` work; errors leave the console usable.
-Readline history/editing is available when the runtime provides it.
+Interactive terminals use prompt_toolkit and Pygments for Python syntax colors,
+Tab completion (including `bmi.`, `np.`, your own variables, and quoted BMI variable
+names), matching brackets, searchable session history, and gray history suggestions.
+Press Right to accept a suggestion, Up/Down to recall a line, or Ctrl-R to search.
+End a multiline block with an empty line; bracketed pastes support multiple
+statements and blocks. Ctrl-C cancels input; Ctrl-L redraws the screen.
+History is kept in memory for this launch only. Redirected input uses a plain
+Python console without terminal control sequences.
+
+The startup guide groups grid metadata and variable names into wrapped rows and
+shows runnable examples. `help(bmi.get_value)` prints directly into scrollback,
+so there is no pager to dismiss. For teaching helpers that return text, use
+`print(help_bmi('get_value'))`, `print(explorer.describe(u))`, or
+`print(explorer.example('get_grid_x', grid_id=r))` to display real line breaks.
 
 `explorer.reset()` restores all grids, values, IDs, and time together on a fresh
 model. Previously retained arrays remain detached from the replacement. Grid

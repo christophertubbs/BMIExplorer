@@ -66,3 +66,15 @@ implemented grids; rank-specific coordinate applicability is explicit.
    explicit. 64-bit integers use BigInt. No Python model bridge, server API,
    deployment or hosted service is introduced. Tests distinguish real topology
    from derived structured display links and verify location-specific bounds.
+
+
+10. **Hydrological samples (2026-11-04).** Replaced index-valued `__value` fixtures
+    and dtype-named scalar samples with realistic synthetic quantities, matching
+    units, and explicit per-hour changes. Existing semantic browser names are
+    shared with Python; web metadata is exported from Python descriptors. Slope
+    and scalar attributes stay fixed. Defaults remain plausible through end
+    time; arbitrary user writes and strict buffer/precision tests still work.
+    Exact values, code meanings and scaled-temperature decoding are documented
+    in business-configuration.md. These changes supersede earlier index-based
+    defaults and the add-one update rule; they do not turn the fixtures into a
+    solver or introduce new grids/scenarios.

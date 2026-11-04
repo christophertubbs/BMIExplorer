@@ -176,7 +176,7 @@ def describe(method: str) -> str:
         if method in applicability.GRID_METHODS and "unstructured" in entry.grids
         else candidates[0]
     )
-    variable: str = f"{selected.label}__value"
+    variable: str = fixtures.PRIMARY_NAMES[selected.label]
     return (
         f"{method}{entry.signature}\n"
         f"BMI REQUIRED: signature/return from {API_SOURCE}\n"

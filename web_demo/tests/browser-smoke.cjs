@@ -31,6 +31,7 @@ async function main() {
     page.on('response', response => { if (response.status() >= 400) errors.push(`HTTP ${response.status()} ${response.url()}`); });
     await page.goto(base);
     await page.waitForSelector('#main-grid circle');
+    await page.locator('[data-variable="uniform_2d__slope"]').click();
     assert.equal(await page.locator('.fatal-message').count(), 0);
     assert.equal(await page.locator('[data-variable]').count(), 21);
     assert.equal(await page.locator('#method option').count(), 41);
@@ -43,7 +44,7 @@ async function main() {
     await page.locator('#method').selectOption('get_grid_spacing');
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /Float64Array\(2\) \[2, 5\]/);
-    await page.locator('[data-variable="rectilinear_2d__value"]').click();
+    await page.locator('[data-variable="rectilinear_2d__precip_rate"]').click();
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /BMIGridOperationError/);
     assert.match(await page.locator('#latest-result').innerText(), /Caller buffer after rejection/);
@@ -51,31 +52,31 @@ async function main() {
     assert.equal(await page.locator('#buffer-length').inputValue(), '4');
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /\[100, 102, 107, 115\]/);
-    await page.locator('[data-variable="points_2d__value"]').click();
+    await page.locator('[data-variable="points_2d__snow_depth"]').click();
     assert.equal(await page.locator('#buffer-length').inputValue(), '6');
     assert.equal(await page.locator('#main-grid circle').count(), 6);
     assert.equal(await page.locator('#main-grid line').count(), 0);
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /\[0, 2, 3, 1, -1, 1\]/);
 
-    await page.locator('[data-variable="uniform_3d__soil_temp"]').click();
+    await page.locator('[data-variable="rectilinear_2d__precip_rate"]').click();
     await page.locator('#capture-memory').click();
     await page.locator('#copy-edit').click();
-    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '10');
-    assert.equal(await page.locator('#pointer-values .memory-cell').first().innerText(), '0');
+    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '11.2');
+    assert.equal(await page.locator('#pointer-values .memory-cell').first().innerText(), '1.2');
     await page.locator('#pointer-edit').click();
-    assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '10');
+    assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '11.2');
     await page.locator('#step').click();
     assert.equal(await page.locator('#model-time').innerText(), '3,600 s');
-    assert.equal(await page.locator('#pointer-values .memory-cell').first().innerText(), '11');
-    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '10');
+    assert.equal(await page.locator('#pointer-values .memory-cell').first().innerText(), '11.45');
+    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '11.2');
 
     await page.locator('#method').selectOption('set_value');
     await page.locator('#source-values').fill(Array.from({ length: 12 }, (_, i) => i + 20).join(', '));
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /ACCEPTED/);
     assert.equal(await page.locator('#pointer-values .memory-cell').first().innerText(), '20');
-    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '10');
+    assert.equal(await page.locator('#copy-values .memory-cell').first().innerText(), '11.2');
     await page.locator('#main-grid circle[data-index="6"]').click();
     assert.equal(await page.locator('#selected-index').inputValue(), '6');
     await page.locator('#edit-value').fill('77');
@@ -93,7 +94,7 @@ async function main() {
       assert.equal(await page.locator('[data-value-index="6"] strong').innerText(), '77');
     }
 
-    await page.locator('[data-variable="unstructured_mixed__face_value"]').click();
+    await page.locator('[data-variable="unstructured_mixed__precipitation_rate"]').click();
     assert.equal(await page.locator('#main-grid polygon').count(), 3);
     assert.equal(await page.locator('.value-chip').count(), 3);
     await page.locator('#main-grid polygon[data-index="2"]').click();
@@ -102,12 +103,12 @@ async function main() {
     assert.equal(await page.locator('[data-value-index="2"] strong').innerText(), '55');
     await page.locator('[data-mistake="bounds"]').click();
     assert.match(await page.locator('#latest-result').innerText(), /BMIIndexError/);
-    await page.locator('[data-variable="unstructured_mixed__edge_value"]').click();
+    await page.locator('[data-variable="unstructured_mixed__flux"]').click();
     assert.equal(await page.locator('.value-chip').count(), 8);
     await page.locator('#main-grid line[data-index="7"]').click();
     assert.equal(await page.locator('#selected-index').inputValue(), '7');
 
-    await page.locator('[data-variable="scalar__uint64"]').click();
+    await page.locator('[data-variable="scalar__processed_cells"]').click();
     await page.locator('#edit-value').fill('18446744073709551615');
     await page.locator('#write-value').click();
     assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '18446744073709551615n');
@@ -115,7 +116,7 @@ async function main() {
     assert.match(await page.locator('#latest-result').innerText(), /BMITypeError/);
     assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '18446744073709551615n');
 
-    await page.locator('[data-variable="points_3d__value"]').click();
+    await page.locator('[data-variable="points_3d__water_level"]').click();
     assert.equal(await page.locator('#rotation-control').isVisible(), true);
     const beforeTurn = await page.locator('#main-grid circle').evaluateAll(nodes => nodes.map(n => n.getAttribute('cx')));
     await page.locator('#rotation').evaluate(element => { element.value = '85'; element.dispatchEvent(new Event('input', { bubbles: true })); });
@@ -129,7 +130,7 @@ async function main() {
     assert.equal(await page.locator('.atlas-card svg').count(), 9);
     assert.equal(await page.locator('[data-atlas-variable]').count(), 21);
     await page.screenshot({ path: path.join(artifacts, 'atlas.png'), fullPage: true });
-    await page.locator('[data-atlas-variable="uniform_2d__value"]').click();
+    await page.locator('[data-atlas-variable="uniform_2d__slope"]').click();
     await page.locator('#finalize').click();
     assert.equal(await page.locator('#model-status').innerText(), 'FINALIZED');
     await page.locator('#method').selectOption('get_component_name'); await page.locator('#run-call').click();
@@ -137,13 +138,13 @@ async function main() {
     assert.equal(await page.locator('#pointer-status').innerText(), 'RETAINED OLD OWNER');
     await page.locator('#reset').click();
     assert.equal(await page.locator('#model-time').innerText(), '0 s');
-    assert.equal(await page.locator('[data-value-index="6"] strong').innerText(), '6');
+    assert.equal(await page.locator('[data-value-index="6"] strong').innerText(), '0.0113');
     await page.locator('#pointer-edit').click();
-    assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '0');
+    assert.equal(await page.locator('[data-value-index="0"] strong').innerText(), '0.0124');
     assert.match(await page.locator('#latest-result').innerText(), /current model is unchanged/i);
 
     await page.locator('#scenario').selectOption('shifted_domain');
-    await page.locator('[data-variable="rectilinear_2d__value"]').click();
+    await page.locator('[data-variable="rectilinear_2d__precip_rate"]').click();
     await page.locator('#method').selectOption('get_grid_x'); await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /\[-20, -18, -13, -5\]/);
     await page.locator('#scenario').selectOption('stretched_domain');
@@ -154,7 +155,7 @@ async function main() {
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#guide').isVisible(), false);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('[data-variable="uniform_2d__value"]').click();
+    await page.locator('[data-variable="uniform_2d__slope"]').click();
     await page.locator('#method').selectOption('get_grid_shape');
     await page.locator('#run-call').click();
     assert.match(await page.locator('#latest-result').innerText(), /Int32Array\(2\) \[3, 4\]/);

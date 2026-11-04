@@ -89,12 +89,13 @@ function renderInventory() {
   const allNames = state.model.get_output_var_names();
   for (const id of gridIds()) {
     const grid = state.model.describeGrid(id);
+    const primaryName = state.model.get_output_var_names().find(name => state.model.get_var_grid(name) === id);
     const section = node('div', '', 'inventory-group');
     const button = node('button', '', 'inventory-grid' + (id === state.descriptor.grid ? ' active' : ''));
     button.type = 'button'; button.dataset.grid = id;
     button.append(node('span', String(id).padStart(2, '0'), 'grid-num'), node('span', grid.label), node('span', 'r' + grid.rank, 'rank-label'));
     button.setAttribute('aria-label', `Select ${grid.label}, grid ${id}, rank ${grid.rank}`);
-    button.onclick = () => selectVariable(`${grid.label}__value`);
+    button.onclick = () => selectVariable(primaryName);
     section.append(button);
     for (const name of allNames.filter(n => state.model.get_var_grid(n) === id)) {
       const variable = state.model.describeVariable(name);
@@ -121,6 +122,7 @@ function renderAtlas() {
   host.replaceChildren();
   for (const id of gridIds()) {
     const grid = state.model.describeGrid(id);
+    const primaryName = state.model.get_output_var_names().find(name => state.model.get_var_grid(name) === id);
     const card = node('article', '', 'atlas-card' + (id === state.descriptor.grid ? ' active' : ''));
     const button = node('button', '', 'atlas-open');
     button.type = 'button'; button.dataset.atlasGrid = id;
@@ -128,7 +130,7 @@ function renderAtlas() {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('aria-hidden', 'true');
     button.append(svg);
-    button.onclick = () => { selectVariable(`${grid.label}__value`); setView(false); };
+    button.onclick = () => { selectVariable(primaryName); setView(false); };
     card.append(button);
     const variables = node('div', '', 'atlas-vars');
     for (const name of state.model.get_output_var_names().filter(n => state.model.get_var_grid(n) === id)) {
@@ -140,7 +142,7 @@ function renderAtlas() {
       variables.append(chip);
     }
     card.append(variables); host.append(card);
-    drawGrid(svg, grid, state.model.get_value_ptr(`${grid.label}__value`), { mini: true });
+    drawGrid(svg, grid, state.model.get_value_ptr(primaryName), { mini: true });
   }
 }
 
@@ -475,7 +477,7 @@ function initializeUI() {
   byId('compare-grid').value = '3';
   byId('scenario').onchange = event => replaceModel(event.target.value);
   byId('reset').onclick = () => replaceModel(byId('scenario').value);
-  byId('step').onclick = () => attempt('update()', () => state.model.update(), 'One shared clock advances every evolving node/edge/face variable. Static dtype samples stay fixed.');
+  byId('step').onclick = () => attempt('update()', () => state.model.update(), 'One shared clock applies small, quantity-specific hourly changes. Slope and scalar attributes stay fixed.');
   byId('finalize').onclick = () => attempt('finalize()', () => state.model.finalize(), 'Every later BMI call should fail. Reset creates a new model; old JS references can survive.');
   byId('method').onchange = () => prepareOperation();
   byId('indices').oninput = () => prepareOperation(false);

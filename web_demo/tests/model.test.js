@@ -54,7 +54,7 @@ test('all 41 interface methods exist and metadata remains immutable', () => {
   assert.equal(model.get_input_item_count(), 21);
   assert.deepEqual(model.get_input_var_names(), model.get_output_var_names());
   assert.throws(() => { model.describeGrid(1).shape[0] = 100; }, TypeError);
-  assert.throws(() => { model.describeVariable('uniform_2d__value').grid = 0; }, TypeError);
+  assert.throws(() => { model.describeVariable('uniform_2d__slope').grid = 0; }, TypeError);
   assert.throws(() => { model.get_output_var_names().push('missing'); }, TypeError);
 });
 
@@ -63,9 +63,9 @@ test('nine grids coexist: variable identity, location, dtype and exact initial v
   const ids = new Set(model.get_output_var_names().map(n => model.get_var_grid(n)));
   assert.deepEqual([...ids], [0, 1, 2, 3, 4, 5, 6, 7, 8]);
   for (const [label, type, rank, size] of INVENTORY) {
-    const name = label + '__value'; const id = model.get_var_grid(name);
+    const name = model.get_output_var_names().find(n => model.describeVariable(n).grid === INVENTORY.findIndex(row => row[0] === label)); const id = model.get_var_grid(name);
     assert.deepEqual([model.get_grid_type(id), model.get_grid_rank(id), model.get_grid_size(id)], [type, rank, size]);
-    assert.deepEqual([...model.get_value_ptr(name)], rank === 0 ? [42] : Array.from({ length: size }, (_, i) => i));
+    assert.deepEqual([...model.get_value_ptr(name)], model.describeVariable(name).initial);
     assert.equal(model.get_var_type(name), 'double');
     assert.equal(model.get_var_nbytes(name), size * 8);
     assert.equal(model.get_var_location(name), 'node');
@@ -73,7 +73,7 @@ test('nine grids coexist: variable identity, location, dtype and exact initial v
   assert.equal(model.get_grid_node_count(8), 6);
   assert.equal(model.get_grid_edge_count(8), 8);
   assert.equal(model.get_grid_face_count(8), 3);
-  for (const [suffix, count] of [['edge_value', 8], ['face_value', 3]]) {
+  for (const [suffix, count] of [['flux', 8], ['precipitation_rate', 3]]) {
     const name = 'unstructured_mixed__' + suffix;
     assert.equal(model.get_var_grid(name), 8);
     assert.equal(model.get_var_nbytes(name), count * 8);
@@ -162,10 +162,10 @@ test('mixed ragged faces have valid IDs, connected boundaries and counter-clockw
 });
 
 test('copy, pointer, full/indexed writes, overlap and duplicate order', () => {
-  const model = initialized(); const name = 'unstructured_edges__value';
+  const model = initialized(); const name = 'unstructured_edges__flow_velocity';
   const pointer = model.get_value_ptr(name); const copy = new Float64Array(4);
   assert.equal(model.get_value(name, copy), copy); assert.notEqual(copy.buffer, pointer.buffer);
-  copy[0] = 90; assert.equal(pointer[0], 0);
+  copy[0] = 90; assert.equal(pointer[0], 2.1);
   pointer[0] = 10; model.get_value(name, copy); assert.equal(copy[0], 10);
   model.set_value(name, new Float64Array([0, 1, 2, 3])); assert.equal(model.get_value_ptr(name), pointer);
   model.set_value_at_indices(name, new Int32Array([3, 2, 1, 0]), pointer);
@@ -180,7 +180,7 @@ test('copy, pointer, full/indexed writes, overlap and duplicate order', () => {
 
 for (const bad of [[0], 0, new Float64Array([0]), new Int32Array([-1]), new Int32Array([4]), new Uint32Array([0])]) {
   test(`index contract rejects ${bad?.constructor?.name ?? typeof bad}: ${String(bad)}`, () => {
-    const model = initialized(); const name = 'unstructured_edges__value';
+    const model = initialized(); const name = 'unstructured_edges__flow_velocity';
     const pointer = model.get_value_ptr(name); const before = pointer.slice();
     const dest = new Float64Array([7]);
     assert.throws(() => model.get_value_at_indices(name, dest, bad));
@@ -191,7 +191,7 @@ for (const bad of [[0], 0, new Float64Array([0]), new Int32Array([-1]), new Int3
 
 for (const [dtype, spec] of Object.entries(DTYPES)) {
   test(`primitive ${dtype} preserves precision and rejects implicit casts`, () => {
-    const model = initialized(); const name = 'scalar__' + dtype;
+    const model = initialized(); const name = model.get_output_var_names().find(n => { const v = model.describeVariable(n); return v.grid === 0 && !v.evolving && v.dtype === dtype; });
     const pointer = model.get_value_ptr(name);
     assert.equal(model.get_var_itemsize(name), spec.ctor.BYTES_PER_ELEMENT);
     const values = spec.min === undefined ? [0, -0, Math.fround(1.0000001192092896), dtype === 'float64' ? Number.MAX_VALUE : 3.4028234663852886e38] : [spec.min, spec.max];
@@ -240,14 +240,14 @@ test('time/lifecycle is shared, validates before writes and never replaces stora
   pointers.forEach((v, i) => {
     assert.equal(v, model.get_value_ptr(names[i]));
     const evolving = model.describeVariable(names[i]).evolving;
-    assert.deepEqual([...v], [...initial[i]].map(value => evolving ? value + 1 : value));
+    assert.deepEqual([...v], [...initial[i]].map(value => evolving ? value + model.describeVariable(names[i]).step_change : value));
   });
   model.update_until(10800); rejects(() => model.update(), 'BMILifecycleError');
-  const held = model.get_value_ptr('uniform_2d__value');
+  const held = model.get_value_ptr('uniform_2d__slope');
   model.finalize();
   for (const method of BMI_METHODS) rejects(() => model[method](), 'BMILifecycleError');
   const fresh = initialized(); held[0] = 999;
-  assert.equal(fresh.get_value_ptr('uniform_2d__value')[0], 0);
+  assert.equal(fresh.get_value_ptr('uniform_2d__slope')[0], 0.0124);
 });
 
 test('fresh initialization rejects unsupported tokens/types without poisoning the new model', () => {
@@ -289,7 +289,7 @@ for (const key of Object.keys(SCENARIOS)) {
 }
 
 test('method controls use variable cardinality and the API indexed-setter argument order', () => {
-  const model = initialized(); const grid = model.describeGrid(8); const variable = model.describeVariable('unstructured_mixed__face_value');
+  const model = initialized(); const grid = model.describeGrid(8); const variable = model.describeVariable('unstructured_mixed__precipitation_rate');
   assert.equal(operationSpec('get_value', grid, variable).count, 3);
   assert.equal(operationSpec('get_value_at_indices', grid, variable, 2).count, 2);
   assert.match(operationSpec('set_value_at_indices', grid, variable).signature, /inds, src/);
@@ -299,7 +299,7 @@ test('method controls use variable cardinality and the API indexed-setter argume
 
 for (const bad of [[1, 2, 3, 4], 9, new Float32Array(4), new Int32Array(4), new Float64Array(3), new Float64Array(5), new DataView(new ArrayBuffer(32))]) {
   test(`full value access refuses ${bad?.constructor?.name}: ${ArrayBuffer.isView(bad) ? bad.byteLength : 'non-buffer'}`, () => {
-    const model = initialized(); const name = 'unstructured_edges__value';
+    const model = initialized(); const name = 'unstructured_edges__flow_velocity';
     const pointer = model.get_value_ptr(name); const before = pointer.slice();
     const destinationBefore = bad instanceof Float64Array || Array.isArray(bad) ? [...bad] : null;
     assert.throws(() => model.set_value(name, bad));
@@ -311,8 +311,34 @@ for (const bad of [[1, 2, 3, 4], 9, new Float32Array(4), new Int32Array(4), new 
 
 test('a same-time update is a bit-preserving no-op, including signed zero', () => {
   const model = initialized();
-  model.set_value('scalar__value', new Float64Array([-0]));
+  model.set_value('scalar__velocity', new Float64Array([-0]));
   model.update_until(0);
-  assert.ok(Object.is(model.get_value_ptr('scalar__value')[0], -0));
+  assert.ok(Object.is(model.get_value_ptr('scalar__velocity')[0], -0));
   rejects(() => buffer(Object.create(Float64Array.prototype), 'float64', 1, 'probe'), 'BMITypeError');
 });
+
+for (const scenario of Object.keys(SCENARIOS)) {
+  test(`hydrological defaults remain plausible through end time in ${scenario}`, () => {
+    const model = initialized(scenario);
+    const cases = [
+      ['uniform_3d__soil_temp', 'degC', 12.2, 14.8, 0.1],
+      ['rectilinear_3d__saturation', '1', 0.45, 0.85, 0.01],
+      ['points_2d__snow_depth', 'm', 0.1, 0.32, -0.002],
+      ['rectilinear_2d__precip_rate', 'mm h-1', 1.2, 4.0, 0.25],
+    ];
+    const slope = model.get_value_ptr('uniform_2d__slope').slice();
+    for (let step = 0; step <= 3; step += 1) {
+      model.update_until(step * 3600);
+      for (const [name, units, low, high, change] of cases) {
+        const values = model.get_value_ptr(name);
+        assert.equal(model.get_var_units(name), units);
+        assert.ok(Math.abs(Math.min(...values) - (low + step * change)) < 1e-12, name);
+        assert.ok(Math.abs(Math.max(...values) - (high + step * change)) < 1e-12, name);
+      }
+    }
+    assert.deepEqual(model.get_value_ptr('uniform_2d__slope'), slope);
+    assert.equal(model.get_value_ptr('scalar__scaled_temp')[0] / 100, 23.45);
+    assert.equal(model.get_var_units('scalar__scaled_temp'), '0.01 degC');
+    assert.equal(model.get_value_ptr('scalar__flow_direction_code')[0], 64);
+  });
+}

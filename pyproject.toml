@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Interactive, strict-buffer CSDMS BMI teaching fixtures"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["numpy>=1.26", "bmipy==2.0.1"]
+dependencies = ["numpy>=1.26", "bmipy==2.0.1", "prompt_toolkit>=3.0.48,<4", "Pygments>=2.18,<3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

@@ -1,7 +1,10 @@
 # Primitive type and ABI mapping
 
-Each `scalar__<dtype>` variable is a static one-element width example initialized
-to 7. Main node/edge/face examples use double/float64.
+Static one-element scalar attributes cover each primitive width with hydrological
+names and values (for example `scalar__stream_order=5`, `scalar__area_sqkm=253.25`,
+and `scalar__manning_roughness=0.035`). The complete name/dtype/value/unit mapping
+is in [fixture configuration](business-configuration.md). Main node/edge/face
+examples use double/float64.
 
 | Declared BMI label | NumPy dtype | Teaching C++ equivalent | Bytes |
 |---|---|---|---:|

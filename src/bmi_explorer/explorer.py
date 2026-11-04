@@ -144,7 +144,7 @@ class Explorer:
             )
         return (
             f"{name_or_grid}: grid={self.bmi.get_var_grid(name_or_grid)}, "
-            f"location={self.bmi.get_var_location(name_or_grid)}, type={self.bmi.get_var_type(name_or_grid)}, "
+            f"location={self.bmi.get_var_location(name_or_grid)}, units={self.bmi.get_var_units(name_or_grid)}, type={self.bmi.get_var_type(name_or_grid)}, "
             f"bytes={self.bmi.get_var_nbytes(name_or_grid)}; "
             f"count={self.bmi.get_var_nbytes(name_or_grid)//self.bmi.get_var_itemsize(name_or_grid)}, "
             f"dtype={self.bmi._variable(name_or_grid, 'describe').dtype}"
@@ -282,7 +282,7 @@ class Explorer:
             raise KeyError("Available tours: scalar, buffers, grids")
         if name == "grids":
             uniform: int = self.bmi.get_var_grid(descriptors.VALUE_NAME)
-            rectilinear: int = self.bmi.get_var_grid("rectilinear_2d__value")
+            rectilinear: int = self.bmi.get_var_grid("rectilinear_2d__precip_rate")
             print(self.compare(uniform, rectilinear))
             print("Valid: uniform spacing has two entries [2., 5.].")
             self.try_call("get_grid_spacing", uniform, np.empty(2, dtype=np.float64))

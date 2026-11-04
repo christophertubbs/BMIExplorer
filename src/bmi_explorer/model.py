@@ -444,7 +444,7 @@ class Model(grids.GridMethods, bmipy.Bmi):
             values[index] = staged_source[position]
 
     def update(self) -> None:
-        """Advance one timestep, adding one to each variable value.
+        """Advance one timestep using each variable's documented change.
 
         TODO(AI-GENERATED): Review and rewrite or approve this implementation.
         TODO: AI-generated implementation; human review and rewrite required.
@@ -487,5 +487,5 @@ class Model(grids.GridMethods, bmipy.Bmi):
         values: np.ndarray
         for name, values in self._values.items():
             if self._variables[name].evolving:
-                values[:] += steps
+                values[:] += steps * self._variables[name].step_change
         self._time = float(time)

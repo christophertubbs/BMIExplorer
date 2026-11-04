@@ -126,7 +126,7 @@ export default class BMI {
     const steps = (time - this.#time) / 3600;
     if (steps === 0) return;
     for (const [name, values] of this.#values) if (this.#variables.get(name).evolving) {
-      for (let i = 0; i < values.length; i += 1) values[i] += steps;
+      for (let i = 0; i < values.length; i += 1) values[i] += steps * this.#variables.get(name).step_change;
     }
     this.#time = time;
   }

@@ -59,8 +59,8 @@ The companion adds two explicitly browser-local model variants:
 
 Switching models/reset replaces the whole owner and resets time to 0. Grid and
 variable selection never do so. Every model uses a shared 3600 s step and a
-10800 s end; evolving primary float64 node/edge/face values increase by one each
-step, while primitive-width samples stay static. There are no timed simulations.
+10800 s end; evolving hydrological values change by their documented quantity-specific
+hourly increment each step, while primitive-width samples stay static. There are no timed simulations.
 
 The public method names and argument order follow the linked
 [BMI-JS skeleton](https://github.com/uihilab/BMI-JS/blob/main/bmijs/bmi.js).
@@ -135,3 +135,12 @@ not this project. Browser checks cover actual controls, D3 element counts,
 copy/reference mutations and owner replacement, errors preserving values,
 node/edge/face selection, full 64-bit text, 3D rotation, keyboard interaction,
 scenario variants, mobile overflow, and exclusively same-origin GET traffic.
+
+
+The baseline and both geometry variants use the same synthetic hydrological data
+as Python: soil temperature in degC, rainfall in mm h-1, fractional saturation,
+depths in m, velocity in m s-1, and edge discharge in m3 s-1. Slope and scalar
+attributes stay fixed. See [fixture values and units](../docs/business-configuration.md)
+for exact meanings, ranges and per-hour changes. Integer scaled temperature 2345
+means 23.45 °C; it is stored in 0.01 degC units. These samples demonstrate BMI
+storage and shared time, not hydrological physics.

@@ -30,7 +30,7 @@ def test_mixed_mesh_boundaries_and_locations() -> None:
     """
     explorer: teaching.Explorer = teaching.Explorer({})
     bmi: model.Model = explorer.bmi
-    grid: int = bmi.get_var_grid("unstructured_mixed__value")
+    grid: int = bmi.get_var_grid("unstructured_mixed__depth")
     assert (
         bmi.get_grid_node_count(grid),
         bmi.get_grid_edge_count(grid),
@@ -70,7 +70,7 @@ def test_mixed_mesh_boundaries_and_locations() -> None:
     count_values: int
     for location, count_values in (("node", 6), ("edge", 8), ("face", 3)):
         name: str = "unstructured_mixed__" + (
-            "value" if location == "node" else location + "_value"
+            {"node": "depth", "edge": "flux", "face": "precipitation_rate"}[location]
         )
         assert bmi.get_var_grid(name) == grid and bmi.get_var_location(name) == location
         assert bmi.get_var_nbytes(name) == count_values * 8
@@ -101,7 +101,7 @@ def test_empty_topology(label: str, expected_edges: int) -> None:
     """
     explorer: teaching.Explorer = teaching.Explorer({})
     bmi: model.Model = explorer.bmi
-    grid: int = bmi.get_var_grid(label + "__value")
+    grid: int = bmi.get_var_grid(fixtures.PRIMARY_NAMES[label])
     assert bmi.get_grid_face_count(grid) == 0
     assert bmi.get_grid_edge_count(grid) == expected_edges
     field: str

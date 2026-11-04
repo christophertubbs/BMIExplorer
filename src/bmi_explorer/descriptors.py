@@ -19,8 +19,8 @@ UNIFORM_GRID: typing.Final[str] = "uniform_rectilinear"
 RECTILINEAR_GRID: typing.Final[str] = "rectilinear"
 POINTS_GRID: typing.Final[str] = "points"
 UNSTRUCTURED_GRID: typing.Final[str] = "unstructured"
-VALUE_NAME: typing.Final[str] = "uniform_2d__value"
-SCALAR_NAME: typing.Final[str] = "scalar__value"
+VALUE_NAME: typing.Final[str] = "uniform_2d__slope"
+SCALAR_NAME: typing.Final[str] = "scalar__velocity"
 TIME_STEP: typing.Final[float] = 3600.0
 END_TIME: typing.Final[float] = 10800.0
 
@@ -84,12 +84,13 @@ class Variable:
     :param initial: Values restored by a new initialized model.
     :param units: Units of primitive values.
     :param grid: Associated grid identifier.
-    :param location: Association with grid nodes.
+    :param location: Association with grid nodes, edges or faces.
     :param dtype: Fixed-width NumPy dtype spelling.
     :param primitive: Fixture C++ BMI primitive spelling.
     :param readable: Exposure in output names.
     :param writable: Exposure in input names.
-    :param evolving: Whether each model timestep adds one to these values.
+    :param evolving: Whether each model timestep changes these values.
+    :param step_change: Change per hour in the variable's stored units; zero for static fields.
     """
 
     name: str
@@ -102,6 +103,7 @@ class Variable:
     readable: bool = True
     writable: bool = True
     evolving: bool = True
+    step_change: float = 0.0
 
     @property
     def count(self) -> int:

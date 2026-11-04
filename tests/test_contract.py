@@ -182,15 +182,15 @@ def test_lifecycle() -> None:
     assert bmi.get_end_time() == 10800.0
     bmi.update()
     assert bmi.get_current_time() == 3600.0
-    np.testing.assert_array_equal(pointer, initial + 1)
+    np.testing.assert_array_equal(pointer, initial + 0.05)
     with pytest.raises(errors.BMILifecycleError):
         bmi.update_until(0.0)
     bmi.update_until(10800.0)
-    np.testing.assert_array_equal(pointer, initial + 3)
+    np.testing.assert_allclose(pointer, initial + 0.15, rtol=0, atol=1e-14)
     with pytest.raises(errors.BMILifecycleError):
         bmi.update()
     bmi.finalize()
-    np.testing.assert_array_equal(pointer, initial + 3)
+    np.testing.assert_allclose(pointer, initial + 0.15, rtol=0, atol=1e-14)
 
 
 @pytest.mark.parametrize("method", tuple(sorted(bmipy.Bmi.__abstractmethods__)))
@@ -206,7 +206,7 @@ def test_all_methods_fail_after_finalize(method: str) -> None:
     bmi: model.Model = initialized()
     bmi.finalize()
     arguments: dict[str, object] = {
-        "name": "uniform_2d__value",
+        "name": "uniform_2d__slope",
         "grid": 0,
         "dest": np.empty(12),
         "src": np.empty(12),

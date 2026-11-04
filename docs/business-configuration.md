@@ -20,14 +20,51 @@ tuples, while each model allocates its own mutable NumPy value buffers.
 | 8 | unstructured_mixed | unstructured | 2 | 6 | Two quadrilaterals and a triangle; eight edges |
 
 IDs are stable in this scenario, but examples should derive them with
-`get_var_grid(name)`. Each grid exposes `<label>__value`: a read/write float64 node
-variable with units `1`, initially `[42.]` for scalar or zero-based node indices
-for spatial grids. These names are illustrative, not certified Standard Names.
-Ten additional one-element `scalar__<dtype>` variables cover the dtypes in
-[type mapping](type-mapping.md), all initially `[7]`. The mixed mesh also exposes
-`unstructured_mixed__edge_value=[10.,11.,12.,13.,14.,15.,16.,17.]` and
-`unstructured_mixed__face_value=[20.,21.,22.]`. Their grid IDs are both 8, but their
-counts and indexed bounds differ from the six-node variable.
+`get_var_grid(name)`. Variable names describe synthetic hydrological quantities;
+they are illustrative, not certified Standard Names or observed data. All primary
+node/edge/face quantities use float64. Their exact arrays live in
+`src/bmi_explorer/fixtures.py`; the browser baseline is exported from those same
+descriptors. Browser geometry variants keep these values and units.
+
+| Variable | Units | Initial values or range | Change per hour |
+|---|---|---|---:|
+| scalar__velocity | m s-1 | 1.25 | +0.05 |
+| uniform_2d__slope | 1 (rise/run) | 0.0036–0.0189 | 0 |
+| uniform_3d__soil_temp | degC | 12.2–14.8; cooler second layer | +0.1 |
+| rectilinear_2d__precip_rate | mm h-1 | 1.2–4.0 | +0.25 |
+| rectilinear_3d__saturation | 1 (fraction) | 0.45–0.85; wetter second layer | +0.01 |
+| points_2d__snow_depth | m | 0.10–0.32 | -0.002 |
+| points_3d__water_level | m above local datum | 0.846–4.42 | +0.02 |
+| unstructured_edges__flow_velocity | m s-1 | 1.773–2.435 | +0.05 |
+| unstructured_mixed__depth | m | 1.238–4.976 | +0.01 |
+| unstructured_mixed__flux | m3 s-1 | -0.119–1.351 | +0.02 |
+| unstructured_mixed__precipitation_rate | mm h-1 | [2.0, 2.5, 3.0] | +0.25 |
+
+The mixed mesh has six depth values on nodes, eight signed volumetric fluxes
+on edges, and three rainfall rates on faces. Negative flux denotes flow against
+the edge's tail-to-head direction. Water levels use an arbitrary local vertical
+datum, independent of the small illustrative grid coordinates. All units above
+are returned by `get_var_units` (`m` for water level).
+
+Ten static scalar attributes preserve primitive-width teaching coverage:
+
+| Variable | Dtype | Initial value | Units/meaning |
+|---|---|---:|---|
+| scalar__anomaly_class | int8 | -3 | 1; illustrative class -3 (very dry) to +3 (very wet) |
+| scalar__qc_code | uint8 | 2 | 1; example quality flag: 0 unchecked, 1 good, 2 suspect, 3 rejected |
+| scalar__scaled_temp | int16 | 2345 | 0.01 degC; decoded air temperature is 23.45 °C |
+| scalar__stream_order | uint16 | 5 | 1; Strahler stream order |
+| scalar__flow_direction_code | int32 | 64 | 1; D8 bit code, north in this fixture |
+| scalar__contributing_cells | uint32 | 384 | 1; upstream grid-cell count |
+| scalar__storage_capacity | int64 | 7030259239 | m3; large reservoir capacity |
+| scalar__processed_cells | uint64 | 83939242345 | 1; cumulative cell visits across timesteps/runs |
+| scalar__area_sqkm | float32 | 253.25 | km2; catchment area |
+| scalar__manning_roughness | float64 | 0.035 | s m-1/3; Manning n |
+
+Counts and codes are dimensionless. The scaled temperature explicitly uses
+hundredths of a degree; its integer value is not a temperature of 2345 °C.
+These independent examples do not describe one calibrated catchment. See
+[type mapping](type-mapping.md) for buffer widths and ABI assumptions.
 
 Shape/spacing/origin use ij order, with x varying fastest in flat C-order node
 storage. On shape [3,4], row 1, column 2 is index 6. On shape [2,3,4], layer 1,
@@ -61,9 +98,12 @@ The same coordinates on a point grid illustrate how explicit connectivity change
 available operations without changing node positions.
 
 Every grid shares one clock: start/current=0 seconds, step=3600, end=10800.
-Each step adds 1.0 to the nine float64 node variables and the mixed mesh's edge
-and face variables. Typed scalar width samples remain fixed, avoiding integer
-overflow in time demonstrations. `update_until` requires a finite exact step
+Each step applies the per-hour `step_change` in the table above to evolving
+variables; slope and scalar attributes remain fixed. Snow slowly melts, temperatures
+warm slightly, and saturation stays between zero and one through the final step.
+These deterministic changes demonstrate shared time and live buffers, not coupled
+physics. User writes remain unrestricted by physical range, so memory/precision
+experiments keep their existing behavior. Reset restores the plausible defaults. `update_until` requires a finite exact step
 boundary between current and end inclusive. Writes affect only their named
 variable; comparisons, discovery and tours do not update, reset or replace state.
 

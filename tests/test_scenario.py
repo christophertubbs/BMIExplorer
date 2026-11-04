@@ -107,34 +107,33 @@ def test_inventory_and_shared_state() -> None:
     grid: int
     name: str
     for label, kind, rank, size in reversed(EXPECTED):
-        name = label + "__value"
+        name = fixtures.PRIMARY_NAMES[label]
         grid = bmi.get_var_grid(name)
         assert (
             bmi.get_grid_type(grid),
             bmi.get_grid_rank(grid),
             bmi.get_grid_size(grid),
         ) == (kind, rank, size)
-        np.testing.assert_array_equal(
-            pointers[name], [42.0] if rank == 0 else np.arange(size, dtype=np.float64)
-        )
-    bmi.set_value("uniform_2d__value", np.full(12, 99.0))
+        assert pointers[name].size == size and pointers[name].dtype == np.float64
+    bmi.set_value("uniform_2d__slope", np.full(12, 99.0))
     for name in pointers:
         assert bmi.get_value_ptr(name) is pointers[name]
         np.testing.assert_array_equal(
-            pointers[name], 99.0 if name == "uniform_2d__value" else before[name]
+            pointers[name], 99.0 if name == "uniform_2d__slope" else before[name]
         )
     bmi.update()
     assert bmi.get_current_time() == 3600.0
     for name in pointers:
         assert bmi.get_value_ptr(name) is pointers[name]
-        np.testing.assert_array_equal(
+        variable: descriptors.Variable = next(
+            v for v in fixtures.VARIABLES if v.name == name
+        )
+        np.testing.assert_allclose(
             pointers[name],
-            (
-                100.0
-                if name == "uniform_2d__value"
-                else before[name]
-                + (0 if name.startswith("scalar__") and name != "scalar__value" else 1)
-            ),
+            (99.0 if name == "uniform_2d__slope" else before[name])
+            + variable.step_change,
+            rtol=0,
+            atol=1e-12,
         )
 
 
@@ -153,7 +152,7 @@ def test_exact_geometry(
     :return: None; asserts buffer identity, exact output, and metadata isolation.
     """
     bmi: model.Model = initialized()
-    grid: int = bmi.get_var_grid(label + "__value")
+    grid: int = bmi.get_var_grid(fixtures.PRIMARY_NAMES[label])
     dtype: str = "float64" if field in ("x", "y", "z", "spacing", "origin") else "int32"
     dest: np.ndarray = np.full(len(expected), -99, dtype=dtype)
     assert getattr(bmi, "get_grid_" + field)(grid, dest) is dest
@@ -201,7 +200,9 @@ def test_geometry_buffer_failures(
         dest = np.full(count, -99, dtype=np.dtype(dtype).newbyteorder("S"))
     before: object = dest.copy()
     with pytest.raises((errors.BMIBufferError, errors.BMITypeError)):
-        getattr(bmi, "get_grid_" + field)(bmi.get_var_grid(label + "__value"), dest)
+        getattr(bmi, "get_grid_" + field)(
+            bmi.get_var_grid(fixtures.PRIMARY_NAMES[label]), dest
+        )
     np.testing.assert_array_equal(dest, before)
 
 
@@ -237,11 +238,14 @@ def test_reset_comparison_and_tours() -> None:
         ("uniform_2d", "rectilinear_2d"),
     ):
         result: str = explorer.compare(
-            bmi.get_var_grid(label + "__value"), bmi.get_var_grid(other + "__value")
+            bmi.get_var_grid(fixtures.PRIMARY_NAMES[label]),
+            bmi.get_var_grid(fixtures.PRIMARY_NAMES[other]),
         )
         assert label in result and other in result and "bytes=" in result
-    assert "get_grid_z" not in explorer.methods(bmi.get_var_grid("points_2d__value"))
-    assert "get_grid_z" in explorer.methods(bmi.get_var_grid("points_3d__value"))
+    assert "get_grid_z" not in explorer.methods(
+        bmi.get_var_grid("points_2d__snow_depth")
+    )
+    assert "get_grid_z" in explorer.methods(bmi.get_var_grid("points_3d__water_level"))
     for name in ("scalar", "buffers", "grids"):
         explorer.tour(name)
     assert explorer.bmi is bmi and session.locals["bmi"] is bmi
@@ -278,7 +282,7 @@ def test_primitive_extremes(dtype: str) -> None:
     :return: None; verifies full/indexed copies, pointer identity and wrong-dtype rejection.
     """
     bmi: model.Model = initialized()
-    name: str = "scalar__" + dtype
+    name: str = fixtures.SAMPLE_NAMES[dtype]
     native: np.dtype = np.dtype(dtype)
     values: tuple[int | float, ...] = (
         (np.iinfo(native).min, np.iinfo(native).max)
@@ -376,11 +380,75 @@ def test_three_dimensional_index_order() -> None:
     """
     bmi: model.Model = initialized()
     label: str
-    for label in ("uniform_3d", "rectilinear_3d"):
-        name: str = label + "__value"
+    expected_value: float
+    for label, expected_value in (("uniform_3d", 12.6), ("rectilinear_3d", 0.78)):
+        name: str = fixtures.PRIMARY_NAMES[label]
         dest: np.ndarray = np.empty(1, dtype=np.float64)
         bmi.get_value_at_indices(name, dest, np.array([18], dtype=np.int32))
-        np.testing.assert_array_equal(dest, [18.0])
+        np.testing.assert_array_equal(dest, [expected_value])
         np.testing.assert_array_equal(
-            bmi.get_value_ptr(name).reshape(2, 3, 4)[1, 1, 2], 18.0
+            bmi.get_value_ptr(name).reshape(2, 3, 4)[1, 1, 2], expected_value
         )
+
+
+@pytest.mark.parametrize(
+    "name,units,minimum,maximum,change",
+    [
+        ("scalar__velocity", "m s-1", 0.5, 3.0, 0.05),
+        ("uniform_2d__slope", "1", 0.0, 0.05, 0.0),
+        ("uniform_3d__soil_temp", "degC", 10.0, 20.0, 0.1),
+        ("rectilinear_2d__precip_rate", "mm h-1", 0.0, 10.0, 0.25),
+        ("rectilinear_3d__saturation", "1", 0.0, 1.0, 0.01),
+        ("points_2d__snow_depth", "m", 0.0, 0.5, -0.002),
+        ("points_3d__water_level", "m", 0.0, 6.0, 0.02),
+        ("unstructured_edges__flow_velocity", "m s-1", 0.0, 4.0, 0.05),
+        ("unstructured_mixed__depth", "m", 0.0, 6.0, 0.01),
+        ("unstructured_mixed__flux", "m3 s-1", -2.0, 2.0, 0.02),
+        ("unstructured_mixed__precipitation_rate", "mm h-1", 0.0, 10.0, 0.25),
+        ("scalar__anomaly_class", "1", -3.0, 3.0, 0.0),
+        ("scalar__qc_code", "1", 0.0, 3.0, 0.0),
+        ("scalar__scaled_temp", "0.01 degC", 1000.0, 3000.0, 0.0),
+        ("scalar__stream_order", "1", 1.0, 8.0, 0.0),
+        ("scalar__flow_direction_code", "1", 1.0, 128.0, 0.0),
+        ("scalar__contributing_cells", "1", 1.0, 1000.0, 0.0),
+        ("scalar__storage_capacity", "m3", 1e9, 1e10, 0.0),
+        ("scalar__processed_cells", "1", 1e10, 1e11, 0.0),
+        ("scalar__area_sqkm", "km2", 200.0, 300.0, 0.0),
+        ("scalar__manning_roughness", "s m-1/3", 0.02, 0.06, 0.0),
+    ],
+)
+def test_hydrological_samples(
+    name: str, units: str, minimum: float, maximum: float, change: float
+) -> None:
+    """Shipped samples and every hourly update stay plausible in documented units.
+
+    TODO(AI-GENERATED): Review and rewrite or approve this implementation.
+
+    These are acceptance ranges for this synthetic dataset, not model write limits.
+
+    :param name: Independent expected hydrological variable name.
+    :param units: Stored measurement units, including any temperature scale.
+    :param minimum: Lower acceptance bound for this sample dataset.
+    :param maximum: Upper acceptance bound for this sample dataset.
+    :param change: Expected change in stored units per hour; zero for static data.
+    :return: None; verifies all timesteps, direct advance, pointer identity and reset.
+    """
+    session: code.InteractiveConsole = console.create("all_grids")
+    explorer: teaching.Explorer = session.locals["explorer"]
+    bmi: model.Model = explorer.bmi
+    pointer: np.ndarray = bmi.get_value_ptr(name)
+    initial: np.ndarray = pointer.copy()
+    assert bmi.get_var_units(name) == units
+    step: int
+    for step in range(4):
+        if step:
+            bmi.update()
+        assert bmi.get_value_ptr(name) is pointer
+        assert np.all(np.isfinite(pointer))
+        assert np.all((pointer >= minimum) & (pointer <= maximum))
+        np.testing.assert_allclose(pointer, initial + step * change, rtol=0, atol=1e-12)
+    direct: model.Model = initialized()
+    direct.update_until(10800.0)
+    np.testing.assert_allclose(direct.get_value_ptr(name), pointer, rtol=0, atol=1e-12)
+    explorer.reset()
+    np.testing.assert_array_equal(explorer.bmi.get_value_ptr(name), initial)

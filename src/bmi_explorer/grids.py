@@ -58,7 +58,7 @@ class GridMethods:
         self._require()
         if type(grid) is not int or grid not in self._grids:
             raise errors.BMIIndexError(
-                f"{method}(grid={grid!r}) expected a known integer grid ID. Try bmi.get_var_grid('uniform_2d__value')."
+                f"{method}(grid={grid!r}) expected a known integer grid ID. Try bmi.get_var_grid('uniform_2d__slope')."
             )
         descriptor: descriptors.Grid = self._grids[grid]
         if not applicability.supports(descriptor, method):

@@ -56,7 +56,7 @@ def test_invalid_geometry_buffer(field: str, dtype: str, problem: str) -> None:
         (errors.BMITypeError, errors.BMIBufferError), match="get_grid_" + field
     ):
         getattr(bmi, "get_grid_" + field)(
-            bmi.get_var_grid("uniform_2d__value"), destination
+            bmi.get_var_grid("uniform_2d__slope"), destination
         )
     np.testing.assert_array_equal(destination, before)
 
@@ -105,7 +105,7 @@ def test_empty_index_calls() -> None:
     inds: np.ndarray = np.empty(0, dtype=np.int32)
     assert bmi.get_value_at_indices(name, dest, inds) is dest
     bmi.set_value_at_indices(name, inds, dest)
-    np.testing.assert_array_equal(bmi.get_value_ptr(name), [42.0])
+    np.testing.assert_array_equal(bmi.get_value_ptr(name), [1.25])
 
 
 def test_precision_preserved() -> None:
@@ -118,7 +118,7 @@ def test_precision_preserved() -> None:
     """
     bmi: model.Model = model.Model()
     bmi.initialize("all_grids")
-    name: str = "unstructured_edges__value"
+    name: str = "unstructured_edges__flow_velocity"
     values: np.ndarray = np.array(
         [
             np.nextafter(1.0, 2.0),

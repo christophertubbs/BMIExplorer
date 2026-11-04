@@ -18,7 +18,7 @@ The application must never quietly allow an operation merely because Python or N
 
 **Educational objective:** After experimenting, a user should be able to design and consume `scalar`, `uniform_rectilinear`, `unstructured`, `points`, and `rectilinear` BMI grids on one model, compare representative ranks 0 through 3, distinguish node/edge/face values, allocate correct output buffers, and explain what is guaranteed by BMI versus what is a model- or Explorer-specific convention.
 
-**Non-goals:** Running real scientific solvers, loading external datasets, GIS rendering, arbitrary Python-to-C++ ABI simulation, guaranteeing safety of invalid raw C++ pointers, supporting unsupported ranks or four-dimensional geometry, and auto-correcting malformed user calls. The console core needs no web server, database, or third-party REPL framework. The separately requested static web companion is defined in section 14.
+**Non-goals:** Running real scientific solvers, loading external datasets, GIS rendering, arbitrary Python-to-C++ ABI simulation, guaranteeing safety of invalid raw C++ pointers, supporting unsupported ranks or four-dimensional geometry, and auto-correcting malformed user calls. The console core needs no web server or database. Per the later playground usability request, prompt_toolkit and Pygments provide terminal editing while code.InteractiveConsole retains Python execution semantics. The separately requested static web companion is defined in section 14.
 
 ## 2. Sources and precedence
 
@@ -53,24 +53,24 @@ Expected interactions:
 
 ```python
 >>> explorer.list()
->>> g = bmi.get_var_grid("uniform_2d__value")
+>>> g = bmi.get_var_grid("uniform_2d__slope")
 >>> bmi.get_grid_type(g)
 'uniform_rectilinear'
 >>> rank = bmi.get_grid_rank(g)
 >>> shape = np.empty(rank, dtype=np.int32)
 >>> bmi.get_grid_shape(g, shape)
 array([3, 4], dtype=int32)
->>> r = bmi.get_var_grid("rectilinear_2d__value")
+>>> r = bmi.get_var_grid("rectilinear_2d__precip_rate")
 >>> bmi.get_grid_type(r)
 'rectilinear'
 >>> explorer.try_call("get_grid_spacing", r, np.empty(bmi.get_grid_rank(r), dtype=np.float64))
->>> explorer.describe("uniform_2d__value")
+>>> explorer.describe("uniform_2d__slope")
 >>> explorer.reset()
 ```
 
 Examples resolve grid IDs through variable names rather than assuming a global meaning for ID zero. The names above are illustrative fixture labels, not certified CSDMS Standard Names. `explorer.list()` lists every grid in the current model and its variables; it does not select or instantiate a model. BMI itself has no grid-enumeration method: users can also discover IDs by collecting `get_var_grid(name)` over the input/output variable names.
 
-The console must support normal Python expressions, multiline statements, exceptions, `help()`, history when the runtime offers it, and clean exit via `exit()`/EOF. Do not intercept Python input with a custom language or `eval` parser. An uncaught error prints a readable exception and leaves the REPL usable. Avoid global monkeypatching.
+The console must support normal Python expressions, multiline statements, exceptions, `help()`, history when the runtime offers it, and clean exit via `exit()`/EOF. Do not intercept Python input with a custom language or `eval` parser. An uncaught error prints a readable exception and leaves the REPL usable. Avoid global monkeypatching. Interactive terminals provide syntax highlighting, Tab completion, session history/search and bracket matching; redirected input stays plain. Print help into scrollback without an external pager. Startup guidance uses wrapped grid/variable rows and runnable examples; show print(...) when a teaching helper returns multiline text.
 
 Use `code.InteractiveConsole(interact)` directly or a thin subclass to improve exception presentation. The user is running arbitrary Python in their local process; **do not claim this is a secure sandbox**.
 
@@ -110,7 +110,16 @@ For each type, provide valid and invalid operations in the method applicability 
 | `unstructured_edges` | `unstructured` | 1 | Four x-axis nodes and three connected edges, no faces |
 | `unstructured_mixed` | `unstructured` | 2 | Six nodes, eight edges, three mixed triangle/quadrilateral faces |
 
-Every grid exposes a node-valued float64 variable named `<grid_label>__value`, with units `1`, for direct comparisons using the same primitive dtype. Initial values are `[42.]` for the scalar and the zero-based node indices converted to float64 for each spatial grid. These are illustrative fixture names. Extra variables provide the required primitive-type coverage on these same grids; they do not create additional grids or scenarios. The mixed mesh also exposes edge- and face-valued variables with exact documented initial arrays. At least two variables share a grid ID, including variables at different locations on the mixed mesh.
+Every grid exposes a node-valued float64 hydrological quantity, with a meaningful
+variable name, matching units and plausible initial values. Soil temperature is
+in degrees Celsius, precipitation rate in mm/hour, saturation a fraction, and
+snow/water depth in metres. Ten additional scalar attributes cover the required
+primitive widths using meaningful quantities/codes/counts. The mixed mesh also
+exposes signed edge discharge and face precipitation rate. The full inventory,
+units, example values and hourly changes are specified in
+`docs/business-configuration.md` and immutable fixture descriptors. These are
+synthetic teaching samples, not observed datasets or a calibrated solver. At
+least two variables share a grid ID, including different mesh locations.
 
 Keep shared-grid, multiple-grid, location, and time lessons within `all_grids`. Mutating one variable must leave other variables and grid descriptors unchanged; only documented update rules change other values. All grids share one lifecycle and one time clock. Comparisons must query both grids on the same initialized object without implicit reset, model replacement, or state loss.
 
@@ -231,7 +240,7 @@ Note the last line is educational, not automatic coercion. The messages should a
 
 Implement `initialize(config_file)`, `update()`, `update_until(time)`, and `finalize()`, even though the console launches an initialized default instance. `initialize` must reproducibly construct every grid and variable in `all_grids` together. Use the documented built-in token `all_grids` (also selected by the default empty configuration); retain the BMI signature with no silent arbitrary extra arguments. Other scenario tokens must fail clearly.
 
-Provide a deterministic time fixture with start `0.0`, current `0.0`, step `3600.0`, and end `10800.0`, time units `s`. Values at `t=0` must be explicitly initialized and readable; `update()` advances to `t=3600` and updates selected example values according to a simple documented rule. `update_until()` rejects times earlier than current time, beyond end time, non-finite values, and unsupported fractional targets if the fixture only supports integral timesteps. Do not claim all BMI models prohibit fractional steps; this is the fixture's policy.
+Provide a deterministic time fixture with start `0.0`, current `0.0`, step `3600.0`, and end `10800.0`, time units `s`. Values at `t=0` must be explicitly initialized and readable; `update()` advances to `t=3600` and updates selected example values according to documented quantity-specific hourly changes. Shipped saturation remains in [0,1], temperatures stay plausible in their stated units, and depths remain nonnegative through end time. Slope and scalar attributes are static; user writes are not physically clamped. `update_until()` rejects times earlier than current time, beyond end time, non-finite values, and unsupported fractional targets if the fixture only supports integral timesteps. Do not claim all BMI models prohibit fractional steps; this is the fixture's policy.
 
 `initialize` twice, `update` before initialization, operations after `finalize`, and pointer reuse across lifecycle transitions all get dedicated lessons. State resets must not accidentally preserve invalid references as if they were safe pointers.
 
