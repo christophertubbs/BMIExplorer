@@ -23,7 +23,7 @@ VALUE_NAME: typing.Final[str] = "uniform_2d__slope"
 SCALAR_NAME: typing.Final[str] = "scalar__velocity"
 TIME_STEP: typing.Final[float] = 3600.0
 END_TIME: typing.Final[float] = 10800.0
-
+MY_TIME: typing.Final[float] = 12
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Grid:
